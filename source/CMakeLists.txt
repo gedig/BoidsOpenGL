@@ -1,0 +1,3 @@
+set(SOURCE_LIST
+	"${PROJECT_SOURCE_ROOT}/main.cpp"
+	PARENT_SCOPE)
