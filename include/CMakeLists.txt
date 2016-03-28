@@ -1,3 +1,5 @@
 set(INCLUDE_LIST
-	
+	"${PROJECT_INCLUDE_ROOT}/main.hpp"
+	"${PROJECT_INCLUDE_ROOT}/Camera.hpp"
+	"${PROJECT_INCLUDE_ROOT}/ShaderHelper.hpp"
 	PARENT_SCOPE)

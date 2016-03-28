@@ -1,3 +1,4 @@
 set(SOURCE_LIST
 	"${PROJECT_SOURCE_ROOT}/main.cpp"
+	"${PROJECT_SOURCE_ROOT}/Camera.cpp"
 	PARENT_SCOPE)

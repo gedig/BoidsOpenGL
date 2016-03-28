@@ -1,21 +1,81 @@
+#include "main.hpp"
 #include <iostream>
 #include <string>
 
-#include <SDL.h>
+// **********************************
+// Main Methods, update&render, etc.
+int main(int, char**) {
+	if (!Init())
+		return -1;
 
-#define GL3_PROTOTYPES 1
-#include <GL/glew.h>
-#include <GL/GL.h>
+	// Apply a gray background
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	SDL_GL_SwapWindow(mainWindow);
 
-// TODO-DG: Move these to a header?
-SDL_Window* mainWindow = NULL;
-SDL_GLContext mainContext;
+	if (!SetupBufferObjects())
+		error = true;
 
-bool SetOpenGLAttributes();
-void PrintSDL_GL_Attributes();
-void CheckSDLError(int line);
-void RunGame();
-void Cleanup();
+	RunGame();
+
+	Cleanup();
+
+	return 0;
+}
+
+void RunGame() {
+	bool loop = true;
+
+	while (loop) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT)
+				loop = false;
+			if (!error)
+				Render();
+		}
+	}
+}
+
+void Render() {
+	glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glEnableVertexAttribArray(colourAttributeIndex);
+	glDrawArrays(GL_TRIANGLES, 0, points);
+
+	SDL_GL_SwapWindow(mainWindow);
+}
+
+// **********************************
+// Helper functions (alphabetical)
+
+void CheckSDLError(int line = -1) {
+	std::string error = SDL_GetError();
+
+	if (error != "") {
+		std::cout << "SDL Error: " << error << std::endl;
+
+		if (line != -1)
+			std::cout << "\nLine: " << line << std::endl;
+
+		SDL_ClearError();
+	}
+}
+
+void Cleanup() {
+	shaderHelper.CleanUp();
+
+	glDisableVertexAttribArray(0);
+	glDeleteBuffers(1, vbo);
+	glDeleteVertexArrays(1, vao);
+
+	SDL_GL_DeleteContext(mainContext);
+
+	SDL_DestroyWindow(mainWindow);
+
+	SDL_Quit();
+}
 
 bool Init() {
 	if (SDL_Init(SDL_INIT_VIDEO < 0)) {
@@ -55,83 +115,36 @@ bool SetOpenGLAttributes() {
 	return true;
 }
 
-int main(int, char**) {
-	if (!Init())
-		return -1;
+bool SetupBufferObjects() {
+	// Generates 2 vertex buffers to our handle
+	glGenBuffers(2, vbo);
+	glGenVertexArrays(1, vao);
+	glBindVertexArray(vao[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(mainWindow);
+	// First VBO is active buffer with positions
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, (points * floatsPerPoint) * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
 
-	RunGame();
+	// Coordinate data goes into attribute index 0 and contains 3 floats per vertex
+	glVertexAttribPointer(positionAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	Cleanup();
+	glEnableVertexAttribArray(positionAttributeIndex);
 
-	return 0;
-}
+	// Next VBO is colour data.
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, (points*floatsPerColour) * sizeof(GL_FLOAT), colours, GL_STATIC_DRAW);
 
-void RunGame() {
-	bool loop = true;
+	glVertexAttribPointer(colourAttributeIndex, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-	while (loop) {
-		SDL_Event event;
-		while (SDL_PollEvent(&event)) {
-			if (event.type == SDL_QUIT)
-				loop = false;
-			if (event.type == SDL_KEYDOWN) {
-				switch (event.key.keysym.sym) {
-				case SDLK_ESCAPE:
-					loop = false;
-					break;
-				case SDLK_r:
-					glClearColor(1.0, 0.0, 0.0, 1.0);
-					glClear(GL_COLOR_BUFFER_BIT);
-					SDL_GL_SwapWindow(mainWindow);
-					break;
-				case SDLK_g:
-					glClearColor(0.0, 1.0, 0.0, 1.0);
-					glClear(GL_COLOR_BUFFER_BIT);
-					SDL_GL_SwapWindow(mainWindow);
-					break;
-				case SDLK_b:
-					glClearColor(0.0, 0.0, 1.0, 1.0);
-					glClear(GL_COLOR_BUFFER_BIT);
-					SDL_GL_SwapWindow(mainWindow);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-}
+	glEnableVertexAttribArray(colourAttributeIndex);
 
-void Cleanup() {
-	SDL_GL_DeleteContext(mainContext);
+	if (!shaderHelper.Init("boid"))
+		return false;
 
-	SDL_DestroyWindow(mainWindow);
+	shaderHelper.UseProgram();
 
-	SDL_Quit();
-}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-void CheckSDLError(int line = -1) {
-	std::string error = SDL_GetError();
-
-	if (error != "") {
-		std::cout << "SDL Error: " << error << std::endl;
-
-		if (line != -1)
-			std::cout << "\nLine: " << line << std::endl;
-
-		SDL_ClearError();
-	}
-}
-
-void PrintSDL_GL_Attributes() {
-	int value = 0;
-	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &value);
-	std::cout << "SDL_GL_CONTEXT_MAJOR_VERSION: " << value << std::endl;
-
-	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &value);
-	std::cout << "SDL_GL_CONTEXT_MINOR_VERSION: " << value << std::endl;
+	return true;
 }
