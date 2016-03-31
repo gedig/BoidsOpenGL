@@ -5,16 +5,21 @@ Camera::Camera()
 {
 }
 
-void Camera::Init() {
-	// Set up initial camera matrices.
+void Camera::Init(glm::vec3 initPos) {
+	mPosition = initPos;	// TODO-DG: Read this in from file here instead of being passed in?
+	// Currently, lookTarget defaults to origin.
 	projection = glm::perspective(
 		45.0f,	// Field of View
 		1.0f,	// Aspect Ratio
 		0.1f,	// Near Plane
-		100.0f);// Far Plane
+		10000.0f);// Far Plane
+}
 
-	view = glm::lookAt(
-		glm::vec3(-2, 0, -4),	// Camera start point
-		glm::vec3(0, 0, 0),		// Begins looking at the origin
-		glm::vec3(0, 1, 0));	// Head begins looking up
+glm::mat4 Camera::GetViewProjection()
+{
+	glm::mat4 view = glm::lookAt(
+		mPosition,
+		lookTarget,
+		glm::vec3(0, 1, 0));
+	return projection * view;;
 }

@@ -7,8 +7,17 @@
 
 #include "Camera.hpp"
 #include "EventHandler.hpp"
-#include "Model.hpp"
+#include "Boid.hpp"
 #include "Renderer.hpp"
+
+#define NUM_BOIDS 50
+#define INITIAL_DISTANCE 2.8f
+#define NUM_ROWS 10
+#define NUM_COLS 10
+#define SEPARATION_DISTANCE 4.0f
+#define MIN_CAMERA_DISTANCE 30.0f
+#define MAX_CAMERA_SPEED 7.0f
+// Note: Other constants related to rules are in Boid.hpp
 
 void Reset();
 void Update();
@@ -18,6 +27,10 @@ Camera camera;
 EventHandler eventHandler;
 Renderer renderer;
 
-std::vector<Model> modelList;
+GLint64 prevTime = 0;
+
+// Boids Vars:
+Model boidModel;
+Boid boids[NUM_BOIDS];
 
 #endif

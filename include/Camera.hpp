@@ -3,18 +3,19 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include "Entity.hpp"
 
-class Camera {
-public:
+class Camera : public Entity {	// Making this an entity allows us to use all of the movement infrastructure from there.
+public:							// Thinking about it, a component system would probably be ideal.
 	Camera();
 
-	void Init();
+	void Init(glm::vec3 initPos = { 0, 10, -10 });
+	void SetLookTarget(glm::vec3 _lookTarget) { lookTarget = _lookTarget; }
 
-	glm::mat4 GetViewProjection() { return projection * view; }
+	glm::mat4 GetViewProjection();
 private:
 	glm::mat4 projection;
-	glm::mat4 view;
+	glm::vec3 lookTarget;
 };
 
 #endif // !INCLUDE_CAMERA_HPP

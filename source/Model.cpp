@@ -23,10 +23,6 @@ void Model::SetMatrix(glm::mat4 mvp) {
 	shader.SetMatrix(mvp);
 }
 
-void Model::Update() {
-	// TODO-DG: Any updates that have to go in here.
-}
-
 void Model::Render() const {
 	// Enable and bind our positions
 	glEnableVertexAttribArray(positionAttributeIndex);
@@ -54,12 +50,12 @@ bool Model::SetupBufferObjects(std::string modelName) {
 
 	// Bind the points of the model.
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(GLfloat), &positions[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(GLfloat), &positions[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(positionAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// Bind colors
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, colours.size() * sizeof(GLfloat), &colours[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, colours.size() * sizeof(GLfloat), &colours[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(colourAttributeIndex, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	return true;

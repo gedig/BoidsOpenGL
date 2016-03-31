@@ -1,6 +1,8 @@
 set(INCLUDE_LIST
 	"${PROJECT_INCLUDE_ROOT}/main.hpp"
+	"${PROJECT_INCLUDE_ROOT}/Boid.hpp"
 	"${PROJECT_INCLUDE_ROOT}/Camera.hpp"
+	"${PROJECT_INCLUDE_ROOT}/Entity.hpp"
 	"${PROJECT_INCLUDE_ROOT}/EventHandler.hpp"
 	"${PROJECT_INCLUDE_ROOT}/Model.hpp"
 	"${PROJECT_INCLUDE_ROOT}/Renderer.hpp"
