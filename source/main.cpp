@@ -1,9 +1,11 @@
 #include "main.hpp"
+#include <time.h>
 
 /**************************************************/
 /**	Main/Update/Render	**/
 /**************************************************/
 int main(int, char**) {
+	srand(time(NULL));
 	if (!renderer.Init()) {
 		return -1;
 	}
@@ -33,13 +35,18 @@ int main(int, char**) {
 	return 0;
 }
 
+float RandomMod(float offset = 0.0f) {
+	float smallRand = (float)rand() / RAND_MAX;
+	return (smallRand - offset) * INITIAL_DISTANCE * (1.0f + offset);
+}
+
 void Reset() {
-	glm::vec3 initialCameraPosition = glm::vec3(0, (NUM_ROWS*INITIAL_DISTANCE / 2.0f) + INITIAL_DISTANCE * 2, -50);
+	glm::vec3 initialCameraPosition = glm::vec3(0, INITIAL_DISTANCE * 2, -50);
 	camera.SetPosition(initialCameraPosition);
 
-	// TODO-DG: randomize the starting positions
 	for (int i = 0; i < NUM_BOIDS; i++) {
-		boids[i].SetPosition({ ((i % NUM_COLS) - NUM_COLS / 2.0f)*INITIAL_DISTANCE, (i / 10)*(INITIAL_DISTANCE) + INITIAL_HEIGHT, 0.0f });
+		glm::vec3 pos = { RandomMod(1.0f), RandomMod() + INITIAL_HEIGHT, RandomMod(1.0f) };
+		boids[i].SetPosition(pos, true);
 	}
 }
 
@@ -51,28 +58,35 @@ void Update() {
 	// BOIDS:
 	// Calculate the center of mass.
 	//	& calculate the optimal direction to steer to avoid nearby boids
-	glm::vec3 center;
-	glm::vec3 alignment;
+	glm::vec3 center(0.0f);
+	glm::vec3 alignment(0.0f);
 	glm::vec3 localInfluence[NUM_BOIDS];
+	int numInfluencers[NUM_BOIDS] = { 0 };
 	for (int i = 0; i < NUM_BOIDS; i++) {
 		center += boids[i].GetPosition();
 		alignment += glm::normalize(boids[i].GetVelocity());
 		for (int j = i+1; j < NUM_BOIDS; j++) {
 			glm::vec3 distanceVec = boids[i].GetPosition() - boids[j].GetPosition();
-			if (distanceVec.length() > SEPARATION_DISTANCE) {
+			if (glm::length(distanceVec) < SEPARATION_DISTANCE) {
 				// Can calculate different styles of dropoff here, using linear for now.
-				GLfloat contribution = SEPARATION_DISTANCE - distanceVec.length();
+				GLfloat contribution = SEPARATION_DISTANCE - glm::length(distanceVec);
 				localInfluence[i] += glm::normalize(distanceVec) * contribution;
 				localInfluence[j] += glm::normalize(distanceVec) * contribution;
+				numInfluencers[i]++;
+				numInfluencers[j]++;
 				// Updating both of these is better than O(n^2) :)
 			}
 		}
 	}
 
 	center *= (1.0f/NUM_BOIDS);
+	alignment *= (1.0f / NUM_BOIDS);
 
 	// Update Each Boid.
 	for (int i = 0; i < NUM_BOIDS; i++) {
+		if (numInfluencers[i] > 0) {
+			localInfluence[i] *= (0.5f / numInfluencers[i]);
+		}
 		boids[i].Update(deltaTime, center, localInfluence[i], alignment);
 	}
 	// End Boids

@@ -11,8 +11,8 @@ void Camera::Init(glm::vec3 initPos) {
 	projection = glm::perspective(
 		45.0f,	// Field of View
 		1.0f,	// Aspect Ratio
-		0.1f,	// Near Plane
-		10000.0f);// Far Plane
+		1.0f,	// Near Plane
+		1000.0f);// Far Plane
 }
 
 glm::mat4 Camera::GetViewProjection()

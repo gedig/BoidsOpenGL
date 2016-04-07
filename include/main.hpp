@@ -11,13 +11,11 @@
 #include "Grid.hpp"
 #include "Renderer.hpp"
 
-#define NUM_BOIDS 50
-#define INITIAL_DISTANCE 2.8f
+#define NUM_BOIDS 250
+#define INITIAL_DISTANCE 50.0f
 #define INITIAL_HEIGHT 10.0f
-#define NUM_ROWS 10
-#define NUM_COLS 10
-#define SEPARATION_DISTANCE 4.0f
-#define MIN_CAMERA_DISTANCE 30.0f
+#define SEPARATION_DISTANCE 16.0f
+#define MIN_CAMERA_DISTANCE 50.0f
 #define MAX_CAMERA_SPEED 7.0f
 // Note: Other constants related to rules are in Boid.hpp
 
