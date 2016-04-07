@@ -54,6 +54,16 @@ bool ShaderProgram::LoadShader(const std::string &filename, GLenum shaderType) {
 	return false;
 }
 
+// If all uniform colour (not using colours binded to vbo
+void ShaderProgram::SetColour(const glm::vec4 colour) {
+	if (!colourIDSet) {
+		colourID = glGetUniformLocation(programID, "colour");
+		colourIDSet = true;
+	}
+
+	glUniform4f(colourID, colour.r, colour.b, colour.g, colour.a);
+}
+
 void ShaderProgram::SetMatrix(const glm::mat4 mat) {
 	if (!matrixIDSet) {
 		matrixID = glGetUniformLocation(programID, "mvp");

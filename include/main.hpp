@@ -5,13 +5,15 @@
 
 #include <vector>
 
+#include "Boid.hpp"
 #include "Camera.hpp"
 #include "EventHandler.hpp"
-#include "Boid.hpp"
+#include "Grid.hpp"
 #include "Renderer.hpp"
 
 #define NUM_BOIDS 50
 #define INITIAL_DISTANCE 2.8f
+#define INITIAL_HEIGHT 10.0f
 #define NUM_ROWS 10
 #define NUM_COLS 10
 #define SEPARATION_DISTANCE 4.0f
@@ -25,6 +27,7 @@ void Render();
 
 Camera camera;
 EventHandler eventHandler;
+Grid floorGrid;
 Renderer renderer;
 
 GLint64 prevTime = 0;

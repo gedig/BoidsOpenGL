@@ -25,7 +25,9 @@ public:
 	GLuint getID() { return programID; }
 	int Init(std::string shaderName, bool geometry = false);
 	void UseProgram() const { glUseProgram(programID); }
+	void StopProgram() const { glUseProgram(0); }
 	bool LoadShader(const std::string &filename, GLenum shaderType);
+	void SetColour(const glm::vec4 colour);
 	void SetMatrix(glm::mat4 mat);
 
 private:
@@ -42,6 +44,8 @@ private:
 	// Handle to the shader program
 	GLuint programID;
 
+	GLuint colourID;
+	bool colourIDSet;
 	GLuint matrixID;
 	bool matrixIDSet;
 	

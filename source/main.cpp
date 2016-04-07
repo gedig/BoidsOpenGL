@@ -8,6 +8,7 @@ int main(int, char**) {
 		return -1;
 	}
 	camera.Init();
+	floorGrid.Init();
 	boidModel.Init("boid");
 	for (int i = 0; i < NUM_BOIDS; i++) {
 		boids[i].Init(glm::vec3(), &boidModel);
@@ -33,12 +34,12 @@ int main(int, char**) {
 }
 
 void Reset() {
-	glm::vec3 initialCameraPosition = glm::vec3(0, NUM_ROWS*INITIAL_DISTANCE / 2.0f, -50);
+	glm::vec3 initialCameraPosition = glm::vec3(0, (NUM_ROWS*INITIAL_DISTANCE / 2.0f) + INITIAL_DISTANCE * 2, -50);
 	camera.SetPosition(initialCameraPosition);
 
-	// TODO-DG: Might be a good idea to randomize the starting positions
+	// TODO-DG: randomize the starting positions
 	for (int i = 0; i < NUM_BOIDS; i++) {
-		boids[i].SetPosition({ ((i % NUM_COLS) - NUM_COLS / 2.0f)*INITIAL_DISTANCE, (i / 10)*(INITIAL_DISTANCE), 0.0f });
+		boids[i].SetPosition({ ((i % NUM_COLS) - NUM_COLS / 2.0f)*INITIAL_DISTANCE, (i / 10)*(INITIAL_DISTANCE) + INITIAL_HEIGHT, 0.0f });
 	}
 }
 
@@ -87,9 +88,10 @@ void Update() {
 
 void Render() {
 	renderer.RenderStart();
+	glm::mat4 viewProj = camera.GetViewProjection();
+	floorGrid.Render(viewProj);
 	for (int i = 0; i < NUM_BOIDS; i++) {
-		glm::mat4 viewProj = camera.GetViewProjection();
-		boids[i].Render(camera.GetViewProjection());
+		boids[i].Render(viewProj);
 	}
 	renderer.RenderEnd();
 }

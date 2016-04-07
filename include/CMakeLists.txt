@@ -4,6 +4,7 @@ set(INCLUDE_LIST
 	"${PROJECT_INCLUDE_ROOT}/Camera.hpp"
 	"${PROJECT_INCLUDE_ROOT}/Entity.hpp"
 	"${PROJECT_INCLUDE_ROOT}/EventHandler.hpp"
+	"${PROJECT_INCLUDE_ROOT}/Grid.hpp"
 	"${PROJECT_INCLUDE_ROOT}/Model.hpp"
 	"${PROJECT_INCLUDE_ROOT}/Renderer.hpp"
 	"${PROJECT_INCLUDE_ROOT}/ShaderProgram.hpp"
