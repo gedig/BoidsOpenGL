@@ -23,3 +23,38 @@ glm::mat4 Camera::GetViewProjection()
 		glm::vec3(0, 1, 0));
 	return projection * view;;
 }
+
+void Camera::RotateLeft(const glm::vec3 &_point, float angle) {
+	RotateAround(_point, { 0.0f, 1.0f, 0.0f }, -angle);
+}
+
+void Camera::RotateRight(const glm::vec3 &_point, float angle) {
+	RotateAround(_point, { 0.0f, 1.0f, 0.0f }, angle);
+}
+
+void Camera::RotateUp(const glm::vec3 &_point, float angle) {
+	glm::vec3 cross = glm::cross(GetPosition() - _point, { 0.0f, 1.0f, 0.0f });
+	RotateAround(_point, cross, angle);
+}
+
+void Camera::RotateDown(const glm::vec3 &_point, float angle) {
+	RotateUp(_point, -angle);
+}
+
+void Camera::RotateAround(const glm::vec3 &_point, const glm::vec3 &_axis, float angle)
+{
+	glm::vec3 pos = GetPosition();
+	glm::vec3 axis = glm::normalize(_axis);
+	// TODO-DG: Build rotation quat from angle axis
+	glm::quat rot;
+	float s = sin(angle / 2.0f);
+	rot.x = axis.x * s;
+	rot.y = axis.y * s;
+	rot.z = axis.z * s;
+	rot.w = cos(angle / 2.0f);
+
+	glm::vec3 dir = pos - _point;
+	dir = rot * dir;
+	pos = _point + dir;
+	SetPosition(pos);
+}

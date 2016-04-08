@@ -15,8 +15,10 @@
 #define INITIAL_DISTANCE 50.0f
 #define INITIAL_HEIGHT 10.0f
 #define SEPARATION_DISTANCE 16.0f
+
 #define MIN_CAMERA_DISTANCE 50.0f
 #define MAX_CAMERA_SPEED 7.0f
+#define CAMERA_ROTATE_SPEED 2.0f
 // Note: Other constants related to rules are in Boid.hpp
 
 void Reset();

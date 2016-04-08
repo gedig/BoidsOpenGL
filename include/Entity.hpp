@@ -5,6 +5,9 @@
 
 #include "Model.hpp"
 
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 class Entity {
 public:
 	Entity();

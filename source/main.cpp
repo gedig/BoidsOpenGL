@@ -28,6 +28,7 @@ int main(int, char**) {
 		}
 		Update();
 		Render();
+		eventHandler.ClearEvents();
 	}
 
 	renderer.Cleanup();
@@ -92,11 +93,42 @@ void Update() {
 	// End Boids
 
 	// Update the camera
-	// TODO-DG: Better camera movement!
-	if (glm::distance(camera.GetPosition(), center) > MIN_CAMERA_DISTANCE) {
-		camera.Translate(glm::normalize(center - camera.GetPosition()) * MAX_CAMERA_SPEED * deltaTime);
-	}	// TODO-DG: Else what? Back up? Start strafing out of the way? The boids are coming!
-	camera.SetLookTarget(center);
+
+	// Handle Movement
+	bool autoMove = true;
+	bool autoRotate = true;
+	std::vector<Event> events = eventHandler.GetEvents();
+	for (int i = 0; i < events.size(); i++) {
+		switch (events[i].type) {
+		case EventType::CameraRotation:
+			autoMove = false;
+				switch (events[i].action) {
+				case EventAction::Left:
+					camera.RotateLeft(center, CAMERA_ROTATE_SPEED * deltaTime);
+						break;
+				case EventAction::Right:
+					camera.RotateRight(center, CAMERA_ROTATE_SPEED * deltaTime);
+					break;
+				case EventAction::Up:
+					camera.RotateUp(center, CAMERA_ROTATE_SPEED * deltaTime);
+					break;
+				case EventAction::Down:
+					camera.RotateDown(center, CAMERA_ROTATE_SPEED * deltaTime);
+					break;
+				default:
+					break;
+				}
+			break;
+		}
+	}
+	if (autoMove) {
+		if (glm::distance(camera.GetPosition(), center) > MIN_CAMERA_DISTANCE) {
+			camera.Translate(glm::normalize(center - camera.GetPosition()) * MAX_CAMERA_SPEED * deltaTime);
+		}	// TODO-DG: Else what? Back up? Start strafing out of the way? The boids are coming!
+	}
+	if (autoRotate) {
+		camera.SetLookTarget(center);
+	}
 	// TODO-Opt: We could update the third glm::lookAt vector if we want the camera to "bank" while turning!
 }
 
