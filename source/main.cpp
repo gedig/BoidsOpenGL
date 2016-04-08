@@ -9,11 +9,17 @@ int main(int, char**) {
 	if (!renderer.Init()) {
 		return -1;
 	}
+	cameraFlockDistance = INITIAL_CAMERA_DISTANCE;
 	camera.Init();
+	cameraVerticalLockTime = -1.0f;
 	floorGrid.Init();
+	glm::vec3 bottomLeftBound = { -floorGrid.GetFieldSize(), 0.0f, -floorGrid.GetFieldSize() };
+	glm::vec3 topRightBound = { floorGrid.GetFieldSize(), floorGrid.GetFieldSize() / 2.0f, floorGrid.GetFieldSize() };
 	boidModel.Init("boid");
 	for (int i = 0; i < NUM_BOIDS; i++) {
 		boids[i].Init(glm::vec3(), &boidModel);
+		boids[i].SetBounds(bottomLeftBound, topRightBound, BOUNDS_BOUNCE);
+		boids[i].SetGoal({ 0.0f, INITIAL_HEIGHT, 0.0f });
 	}
 	Reset();	// Sets the scene.
 
@@ -26,7 +32,12 @@ int main(int, char**) {
 			running = false;
 			break;
 		}
-		Update();
+		else if (eventHandler.Reset()) {
+			Reset();
+		}
+		else {
+			Update();
+		}
 		Render();
 		eventHandler.ClearEvents();
 	}
@@ -42,7 +53,7 @@ float RandomMod(float offset = 0.0f) {
 }
 
 void Reset() {
-	glm::vec3 initialCameraPosition = glm::vec3(0, INITIAL_DISTANCE * 2, -50);
+	glm::vec3 initialCameraPosition = glm::vec3(0, INITIAL_DISTANCE * 1.5f, -INITIAL_CAMERA_DISTANCE);
 	camera.SetPosition(initialCameraPosition);
 
 	for (int i = 0; i < NUM_BOIDS; i++) {
@@ -62,20 +73,30 @@ void Update() {
 	glm::vec3 center(0.0f);
 	glm::vec3 alignment(0.0f);
 	glm::vec3 localInfluence[NUM_BOIDS];
-	int numInfluencers[NUM_BOIDS] = { 0 };
 	for (int i = 0; i < NUM_BOIDS; i++) {
 		center += boids[i].GetPosition();
-		alignment += glm::normalize(boids[i].GetVelocity());
+		if (glm::length(boids[i].GetVelocity())) {
+			alignment += glm::normalize(boids[i].GetVelocity());
+		}
+		/* // NOTE: Experimented with using this as well with some very interesting results, more fluid appearing and more likely to reach equilibrium
+		if (glm::length(boids[i].GetForce())) {
+			alignment += glm::normalize(boids[i].GetForce());
+		}*/
 		for (int j = i+1; j < NUM_BOIDS; j++) {
 			glm::vec3 distanceVec = boids[i].GetPosition() - boids[j].GetPosition();
-			if (glm::length(distanceVec) < SEPARATION_DISTANCE) {
-				// Can calculate different styles of dropoff here, using linear for now.
-				GLfloat contribution = SEPARATION_DISTANCE - glm::length(distanceVec);
+			GLfloat distance = glm::length(distanceVec);
+			
+			if (distance < SEPARATION_DISTANCE && distance > 0.0f) {
+				GLfloat contribution = 0.0f;
+				// Smooth exponential dropoff from http://webhome.cs.uvic.ca/~blob/publications/datastructures.pdf
+				contribution = (-0.444444f * pow(distance, 6) / pow(SEPARATION_DISTANCE, 6)) + (1.888889f * pow(distance, 4) / pow(SEPARATION_DISTANCE, 4)) + (-2.444444f * pow(distance, 2) / pow(SEPARATION_DISTANCE, 2)) + 1.0f;
+				
+				// Linear:
+				//contribution = SEPARATION_DISTANCE - distance;
+
 				localInfluence[i] += glm::normalize(distanceVec) * contribution;
-				localInfluence[j] += glm::normalize(distanceVec) * contribution;
-				numInfluencers[i]++;
-				numInfluencers[j]++;
-				// Updating both of these is better than O(n^2) :)
+				localInfluence[j] -= glm::normalize(distanceVec) * contribution;
+				// Updating both of these is a bit better than O(n^2) :)
 			}
 		}
 	}
@@ -85,23 +106,17 @@ void Update() {
 
 	// Update Each Boid.
 	for (int i = 0; i < NUM_BOIDS; i++) {
-		if (numInfluencers[i] > 0) {
-			localInfluence[i] *= (0.5f / numInfluencers[i]);
-		}
-		boids[i].Update(deltaTime, center, localInfluence[i], alignment);
+		boids[i].Update(deltaTime * TIME_MOD, center, localInfluence[i], alignment);
 	}
 	// End Boids
 
 	// Update the camera
 
 	// Handle Movement
-	bool autoMove = true;
-	bool autoRotate = true;
 	std::vector<Event> events = eventHandler.GetEvents();
 	for (int i = 0; i < events.size(); i++) {
 		switch (events[i].type) {
 		case EventType::CameraRotation:
-			autoMove = false;
 				switch (events[i].action) {
 				case EventAction::Left:
 					camera.RotateLeft(center, CAMERA_ROTATE_SPEED * deltaTime);
@@ -110,6 +125,7 @@ void Update() {
 					camera.RotateRight(center, CAMERA_ROTATE_SPEED * deltaTime);
 					break;
 				case EventAction::Up:
+					cameraVerticalLockTime = CAMERA_LOCK_TIME;
 					camera.RotateUp(center, CAMERA_ROTATE_SPEED * deltaTime);
 					break;
 				case EventAction::Down:
@@ -119,17 +135,31 @@ void Update() {
 					break;
 				}
 			break;
+		case EventType::CameraDolly:
+			if (events[i].action == EventAction::Up) {
+				cameraFlockDistance -= CAMERA_DOLLY_SPEED * deltaTime;
+			}
+			else {
+				cameraFlockDistance += CAMERA_DOLLY_SPEED * deltaTime;
+			}
+			break;
+		default:
+			break;
 		}
 	}
-	if (autoMove) {
-		if (glm::distance(camera.GetPosition(), center) > MIN_CAMERA_DISTANCE) {
-			camera.Translate(glm::normalize(center - camera.GetPosition()) * MAX_CAMERA_SPEED * deltaTime);
-		}	// TODO-DG: Else what? Back up? Start strafing out of the way? The boids are coming!
-	}
-	if (autoRotate) {
+
+	// Move Camera near cameraFlockdistance
+	if (glm::length(camera.GetPosition() - center) > 0.0f) {
+		glm::vec3 targetPoint = (glm::normalize(camera.GetPosition() - center) * cameraFlockDistance) + center;
+		if (cameraVerticalLockTime > 0.0f) {
+			targetPoint.y = camera.GetPosition().y;
+			cameraVerticalLockTime -= deltaTime;
+		}
+		if (glm::distance(targetPoint, camera.GetPosition()) > CAMERA_MOVE_THRESHOLD) {
+			camera.Translate((targetPoint - camera.GetPosition()) * CAMERA_SPEED_MOD * deltaTime);
+		}
 		camera.SetLookTarget(center);
 	}
-	// TODO-Opt: We could update the third glm::lookAt vector if we want the camera to "bank" while turning!
 }
 
 void Render() {

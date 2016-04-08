@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Grid::Grid() : numVertices(100), lineDistance(3.0f), vertexAttribIndex(0)
+Grid::Grid() : numVertices(500), lineDistance(3.0f), vertexAttribIndex(0)
 {
 }
 

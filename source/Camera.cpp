@@ -20,7 +20,7 @@ glm::mat4 Camera::GetViewProjection()
 	glm::mat4 view = glm::lookAt(
 		mPosition,
 		lookTarget,
-		glm::vec3(0, 1, 0));
+		glm::vec3(0, 1, 0));	// TODO-Opt: We could update the third glm::lookAt vector if we want the camera to "bank" while turning!
 	return projection * view;;
 }
 
@@ -45,7 +45,7 @@ void Camera::RotateAround(const glm::vec3 &_point, const glm::vec3 &_axis, float
 {
 	glm::vec3 pos = GetPosition();
 	glm::vec3 axis = glm::normalize(_axis);
-	// TODO-DG: Build rotation quat from angle axis
+	// Build rotation quat from angle axis
 	glm::quat rot;
 	float s = sin(angle / 2.0f);
 	rot.x = axis.x * s;

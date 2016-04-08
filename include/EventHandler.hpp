@@ -16,13 +16,12 @@ enum class EventAction {
 	Down,
 };
 enum class EventType {
-	// If this class acts as action abstraction (for remappable controls later)
-	//	then external classes don't need to know what was actually pressed, just what to do.
-	//Keyboard,
-	//MouseButton,
-	//MouseMotion,
+	// This class abstracts actions (for remappable controls later)
+	// external classes don't need to know what was actually pressed, just what to do.
+	CameraDolly,
 	CameraPan,
 	CameraRotation,
+	Reset,
 	Quit,
 };
 
@@ -42,15 +41,18 @@ public:
 	std::vector<Event> GetEvents();
 
 	bool Quit() { return quit; }
+	bool Reset() { return reset; }
 
 private:
 	void AddEvent(EventType _type, EventAction _action = EventAction::None);
 	void HandleKeyBoard(SDL_Event &_event);
+	void HandleMouseWheel(SDL_Event &_event);
 
 	SDL_Point mousePoint;
 	std::vector<Event> events;
 
 	bool quit;
+	bool reset;
 };
 
 #endif

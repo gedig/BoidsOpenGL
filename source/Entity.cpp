@@ -1,6 +1,6 @@
 #include "Entity.hpp"
 
-Entity::Entity() : maxVelocity(-1.0f), mMass(1.0f)
+Entity::Entity() : bounds(false), maxVelocity(-1.0f), mMass(1.0f), mVelocity(0.0f)
 {
 }
 
@@ -15,14 +15,22 @@ void Entity::Update(float deltaTime) {
 	//mPosition += mVelocity * deltaTime;
 
 	// Verlet Int:
-	SetVelocity((GetPosition() - prevPosition) * 0.99f);
-	SetPosition(GetPosition() + mVelocity + (mForce / mMass) * deltaTime *deltaTime);
+	SetVelocity((GetPosition() - prevPosition) * 0.999f);
+	Translate( mVelocity + (mForce / mMass) * deltaTime *deltaTime);
 }
 
 void Entity::Render(glm::mat4 viewProjection){
 	glm::mat4 modelMatrix = glm::translate(glm::mat4(), mPosition);
 	mModel->SetMatrix(viewProjection * modelMatrix);
 	mModel->Render();
+}
+
+void Entity::SetBounds(const glm::vec3 & bl, const glm::vec3 & tr, GLfloat bounceAmount)
+{
+	bounds = true; 
+	bottomLeftBound = bl; 
+	topRightBound = tr; 
+	boundsBounce = bounceAmount;
 }
 
 void Entity::SetVelocity(const glm::vec3 & _vel)
@@ -44,8 +52,37 @@ void Entity::SetPosition(const glm::vec3 & position, bool reset)
 	}
 	
 	mPosition = position;
-	// Bounds only for boids, currently, change if this is used elsewhere
-	if (mPosition.y < 0) {
-		mPosition.y = 0;
+}
+
+void Entity::Translate(const glm::vec3 & movement)
+{
+	prevPosition = mPosition;
+	mPosition += movement;
+
+	if (bounds) {
+		if (mPosition.x < bottomLeftBound.x) {
+			mPosition.x = bottomLeftBound.x;
+			prevPosition.x = bottomLeftBound.x - boundsBounce;
+		}
+		else if (mPosition.x > topRightBound.x) {
+			mPosition.x = topRightBound.x;
+			prevPosition.x = topRightBound.x + boundsBounce;
+		}
+		if (mPosition.y < bottomLeftBound.y) {
+			mPosition.y = bottomLeftBound.y;
+			prevPosition.y = bottomLeftBound.y - boundsBounce;
+		}
+		else if (mPosition.y > topRightBound.y) {
+			mPosition.y = topRightBound.y;
+			prevPosition.y = topRightBound.y + boundsBounce;
+		}
+		if (mPosition.z < bottomLeftBound.z) {
+			mPosition.z = bottomLeftBound.z;
+			prevPosition.z = bottomLeftBound.z - boundsBounce;
+		}
+		else if (mPosition.z > topRightBound.z) {
+			mPosition.z = topRightBound.z;
+			prevPosition.z = topRightBound.z + boundsBounce;
+		}
 	}
 }

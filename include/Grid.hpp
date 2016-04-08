@@ -17,8 +17,9 @@ public:
 	~Grid();
 
 	void Init();
-
 	void Render(glm::mat4 viewProjection);
+
+	GLfloat GetFieldSize() { return numVertices / 2.0f * lineDistance; }
 
 private:
 	ShaderProgram shader;
