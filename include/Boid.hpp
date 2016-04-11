@@ -4,9 +4,9 @@
 #pragma once
 
 #include "Entity.hpp"
-//		Field Modifier:		Recommended Value:		// Notes:
+//		Field Modifier:		// Notes:
 #define COHESION 4.0f
-#define SEPARATION 5.0f		//						// Depends greatly on linear or dropoff, main.hpp also has a SEPARATION_DISTANCE constant directly tied to this
+#define SEPARATION 5.0f		// Depends greatly on linear or dropoff, main.hpp also has a SEPARATION_DISTANCE constant directly tied to this
 #define ALIGNMENT 8.0f		
 #define WIND 0.5f
 #define GRAVITY 0.1f 

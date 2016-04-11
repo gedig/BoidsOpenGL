@@ -14,7 +14,7 @@
 
 #define TIME_MOD 1.0f
 
-#define NUM_BOIDS 600
+#define NUM_BOIDS 900
 #define INITIAL_DISTANCE 50.0f
 #define INITIAL_HEIGHT 30.0f
 #define SEPARATION_DISTANCE 8.0f
